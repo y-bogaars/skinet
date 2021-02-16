@@ -13,6 +13,7 @@ namespace API
     public class Startup
     {
         private readonly IConfiguration _config;
+        private readonly string AllowSpecificOrigins = "_AllowSpecificOrigins";
         public Startup(IConfiguration config)
         {
             _config = config;
@@ -30,12 +31,16 @@ namespace API
 
             services.AddSwaggerDocumentation();
 
-            services.AddCors(opt =>
+            services.AddCors(options =>
             {
-                opt.AddPolicy("CorsPolicy", policy =>
-                {
-                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"); 
-                });
+                options.AddPolicy(name: AllowSpecificOrigins,
+                                  builder =>
+                                  {
+                                      builder.WithOrigins("https://localhost:4200")
+                                        .AllowAnyHeader()
+                                        .AllowAnyMethod()
+                                        .AllowCredentials();
+                                  });
             });
         }
 
@@ -51,7 +56,9 @@ namespace API
             app.UseRouting();
             app.UseStaticFiles();
 
-            app.UseCors("CorsPolicy");
+            app.UseCors(AllowSpecificOrigins);
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
